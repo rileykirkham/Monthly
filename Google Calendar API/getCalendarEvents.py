@@ -15,11 +15,11 @@ def last_day_of_month(any_day):
     # subtract the number of remaining 'overage' days to get last day of current month, or said programattically said, the previous day of the first of next month
     return next_month - datetime.timedelta(days=next_month.day)
 
-# Returns list of events for this month
+# Returns list of events for this month.
 def callEvents(service, firstOfMonthSTR, lastOfMonthSTR):
 	return service.events().list(calendarId='primary', timeMin= firstOfMonthSTR,
                                         timeMax = lastOfMonthSTR,
-                                        singleEvents=True, maxResults = 50,
+                                        singleEvents=True, 
                                         orderBy='startTime').execute()
 
 def incMonth(selectedDate):
