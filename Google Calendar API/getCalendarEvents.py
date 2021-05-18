@@ -16,9 +16,11 @@ def last_day_of_month(any_day):
     return next_month - datetime.timedelta(days=next_month.day)
 
 # Returns list of events for this month.
-def callEvents(service, firstOfMonthSTR, lastOfMonthSTR):
-	return service.events().list(calendarId='primary', timeMin= firstOfMonthSTR,
-                                        timeMax = lastOfMonthSTR,
+def callEvents(service, selectedDate):
+	firstOfMonth = datetime.datetime(selectedDate.year, selectedDate.month, 1).isoformat() + 'Z'# 'Z' indicates UTC time
+	lastOfMonth = last_day_of_month(firstOfMonth).isoformat() + 'Z'# 'Z' indicates UTC time
+	return service.events().list(calendarId='primary', timeMin= firstOfMonth,
+                                        timeMax = lastOfMonth,
                                         singleEvents=True, 
                                         orderBy='startTime').execute()
 
@@ -45,13 +47,13 @@ def decMonth(selectedDate):
 
 def main():
    # Returns a list of user's events for the current month.
-   # Tops out at 50 events
     creds = None
     # The file token.json stores the user's access and refresh tokens, and is
     # created automatically when the authorization flow completes for the first
     # time.
     if os.path.exists('token.json'):
         creds = Credentials.from_authorized_user_file('token.json', SCOPES)
+
     # If there are no (valid) credentials available, let the user log in.
     if not creds or not creds.valid:
         if creds and creds.expired and creds.refresh_token:
@@ -81,12 +83,7 @@ def main():
 
     print("Getting events in " + selectedDate.strftime("%B"))
     
-    firstOfMonth = datetime.datetime(selectedDate.year, selectedDate.month, 1)
-    firstOfMonthSTR = firstOfMonth.isoformat() + 'Z'# 'Z' indicates UTC time
-    lastOfMonth = last_day_of_month(firstOfMonth)
-    lastOfMonthSTR = lastOfMonth.isoformat() + 'Z'# 'Z' indicates UTC time
-    
-    events_result = callEvents(service, firstOfMonthSTR, lastOfMonthSTR)
+    events_result = callEvents(service, selectedDate)
     events = events_result.get('items', [])
 
     if not events:
