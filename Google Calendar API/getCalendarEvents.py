@@ -15,6 +15,34 @@ def last_day_of_month(any_day):
     # subtract the number of remaining 'overage' days to get last day of current month, or said programattically said, the previous day of the first of next month
     return next_month - datetime.timedelta(days=next_month.day)
 
+# Returns list of events for this month
+def callEvents(service, firstOfMonthSTR, lastOfMonthSTR):
+	return service.events().list(calendarId='primary', timeMin= firstOfMonthSTR,
+                                        timeMax = lastOfMonthSTR,
+                                        singleEvents=True, maxResults = 50,
+                                        orderBy='startTime').execute()
+
+def incMonth(selectedDate):
+	# If December, move to next year
+	if(selectedDate.month == 12):
+		newYear = selectedDate.year + 1
+		newMonth = 1
+	else:
+		newYear = selectedDate.year
+		newMonth = selectedDate.month + 1
+	return selectedDate.replace(year = newYear, month = newMonth)
+		
+def decMonth(selectedDate):
+	# If January, move to prev year
+	if(selectedDate.month == 1):
+		newYear = selectedDate.year - 1
+		newMonth = 12
+	else:
+		newYear = selectedDate.year
+		newMonth = selectedDate.month - 1
+	return selectedDate.replace(year = newYear, month = newMonth)
+
+
 def main():
    # Returns a list of user's events for the current month.
    # Tops out at 50 events
@@ -40,17 +68,25 @@ def main():
 
     # Call the Calendar API
     currentDate = datetime.datetime.utcnow()
-    now = currentDate.isoformat() + 'Z' # 'Z' indicates UTC time
-    print("Getting this month's events")
+    selectedDate = currentDate
+
+    # TODO -- Add in calls for next month/previous month
+    '''
+	if(IncButtonPressed):
+		selectedDate = incMonth(selectedDate)
+	if(decButtonPressed):
+		selectedDate = decMonth(selectedDate)
+    '''
+
+
+    print("Getting events in " + selectedDate.strftime("%B"))
     
-    firstOfMonth = datetime.datetime(currentDate.year, currentDate.month, 1)
-    firstOfMonthSTR = firstOfMonth.isoformat() + 'Z'
+    firstOfMonth = datetime.datetime(selectedDate.year, selectedDate.month, 1)
+    firstOfMonthSTR = firstOfMonth.isoformat() + 'Z'# 'Z' indicates UTC time
     lastOfMonth = last_day_of_month(firstOfMonth)
-    lastOfMonthSTR = lastOfMonth.isoformat() + 'Z'
-    events_result = service.events().list(calendarId='primary', timeMin= firstOfMonthSTR,
-                                        timeMax = lastOfMonthSTR,
-                                        singleEvents=True, maxResults = 50,
-                                        orderBy='startTime').execute()
+    lastOfMonthSTR = lastOfMonth.isoformat() + 'Z'# 'Z' indicates UTC time
+    
+    events_result = callEvents(service, firstOfMonthSTR, lastOfMonthSTR)
     events = events_result.get('items', [])
 
     if not events:
