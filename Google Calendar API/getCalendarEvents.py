@@ -65,11 +65,11 @@ def main():
 	# TODO -- Add in calls for next month/previous month
 	'''
 	if(IncButtonPressed):
-		selectedDate = incMonth(selectedDate)
+		selectedDate = incDate(selectedDate)
 		events_result = callEvents(service, selectedDate)
 
 	if(decButtonPressed):
-		selectedDate = decMonth(selectedDate)
+		selectedDate = decDate(selectedDate)
 		events_result = callEvents(service, selectedDate)
 
 	'''
