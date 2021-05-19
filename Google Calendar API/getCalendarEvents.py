@@ -76,12 +76,14 @@ def main():
 
 	events_result = callEvents(service, selectedDate)
 	events = events_result.get('items', [])
-
 	if not events:
 		print('No upcoming events found.')
+	f = open("./../CalendarLog.txt","w")
 	for event in events:
 		start = event['start'].get('dateTime', event['start'].get('date'))
-		print(start, event['summary'])
+		# Write found events to log file. Log file will be found in this file's parent folder
+		f.write(start[0:10]  + " " + start[10:] + " " +event['summary'] + "\n")
+		# print(start[0:10]  + " " + start[10:] + " " +event['summary'])
 
 
 if __name__ == '__main__':
