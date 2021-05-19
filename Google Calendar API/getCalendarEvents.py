@@ -9,47 +9,34 @@ from google.oauth2.credentials import Credentials
 # If modifying these scopes, delete the file token.json.
 SCOPES = ['https://www.googleapis.com/auth/calendar.readonly']
 
-def last_day_of_month(any_day):
-	# get close to the end of the month for any day, and add 4 days 'over'
-	next_month = any_day.replace(day=28) + datetime.timedelta(days=4)
-	# subtract the number of remaining 'overage' days to get last day of current month, or said programattically said, the previous day of the first of next month
-	return next_month - datetime.timedelta(days=next_month.day)
-
-# Returns list of events for this month.
+# Returns list of events for the next 4 weeks
 def callEvents(service, selectedDate):
-	firstOfMonth = datetime.datetime(selectedDate.year, selectedDate.month, 1)
-	lastOfMonth = (last_day_of_month(firstOfMonth)).isoformat() + 'Z'# 'Z' indicates UTC time
+
+	# Starts search on previous Sunday. Ends search after 4 weeks
+	dayOfWeek = selectedDate.isoweekday()
+	start = selectedDate - datetime.timedelta(days = dayOfWeek)
+	end = (start + datetime.timedelta(weeks = 4)).isoformat() + 'Z'
+
+	# print("Starting at ", start, " ending at ", end)
+
 	# Rewriting firstOfMonth to be in iso format
-	firstOfMonth = firstOfMonth.isoformat() + 'Z'
-	return service.events().list(calendarId='primary', timeMin= firstOfMonth,
-										timeMax = lastOfMonth,
+	start = start.isoformat() + 'Z'
+	return service.events().list(calendarId='primary', timeMin= start,
+										timeMax = end,
 										singleEvents=True, 
 										orderBy='startTime').execute()
 
-def incMonth(selectedDate):
-	# If December, move to next year
-	if(selectedDate.month == 12):
-		newYear = selectedDate.year + 1
-		newMonth = 1
-	else:
-		newYear = selectedDate.year
-		newMonth = selectedDate.month + 1
-	newDate = selectedDate.replace(year = newYear, month = newMonth)
-	return newDate
+# Move search target forward by 2 weeks
+def incDate(selectedDate):
+	return selectedDate + datetime.timedelta(weeks = 2)
 
-def decMonth(selectedDate):
-	# If January, move to prev year
-	if(selectedDate.month == 1):
-		newYear = selectedDate.year - 1
-		newMonth = 12
-	else:
-		newYear = selectedDate.year
-		newMonth = selectedDate.month - 1
-	newDate = selectedDate.replace(year = newYear, month = newMonth)
-	return newDate
+# Move search target backward by 2 weeks
+def decDate(selectedDate):
+	return selectedDate - datetime.timedelta(weeks = 2)
 
 
 def main():
+
    # Returns a list of user's events for the current month.
 	creds = None
 	# The file token.json stores the user's access and refresh tokens, and is
@@ -69,24 +56,24 @@ def main():
 		# Save the credentials for the next run
 		with open('token.json', 'w') as token:
 			token.write(creds.to_json())
-
 	service = build('calendar', 'v3', credentials=creds)
 
-	# Call the Calendar API
-	currentDate = datetime.datetime.utcnow()
+	# Call the Calendar API with current date equal to today's date at midnight
+	currentDate = datetime.datetime.now().replace(hour = 0, minute = 0, second = 0, microsecond = 0)
 	selectedDate = currentDate
 
 	# TODO -- Add in calls for next month/previous month
 	'''
 	if(IncButtonPressed):
 		selectedDate = incMonth(selectedDate)
+		events_result = callEvents(service, selectedDate)
+
 	if(decButtonPressed):
 		selectedDate = decMonth(selectedDate)
+		events_result = callEvents(service, selectedDate)
+
 	'''
 
-
-	print("Getting events in " + selectedDate.strftime("%B"))
-	
 	events_result = callEvents(service, selectedDate)
 	events = events_result.get('items', [])
 
