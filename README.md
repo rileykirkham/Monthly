@@ -1,2 +1,2 @@
-# Monthly
-Repository for "Monthly" Project
+# Timely
+Repository for "Timely" Project
